@@ -1,9 +1,8 @@
 #mqtt_hostname: test-broker.crystalpower.in
-#mqtt_hostname: Broker.Crystalpower.in
+mqtt_hostname: apraava-hes-broker.apdcl.co
 mqtt_port: 1883
 mqtt_username: mosquittouser
 #mqtt_password: uzh8qObGsLhhAnlZX6ZUwKHpn
 mqtt_force_unsecure: true
-gateway_id: AASU105001
-mqtt_hostname: apraava-hes-broker.apdcl.co
+gateway_id: AASU105001 
 mqtt_password: zVBYMPX7jNgZiwhFfZflhlArWxH7LP
