@@ -10,7 +10,7 @@ from threading import Thread
 import netifaces as ni
 import subprocess
 
-import APN
+#import APN
 
 #from gpiozero import CPUTemperature
 
