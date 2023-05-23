@@ -1,6 +1,6 @@
 mqtt_hostname: apraava-hes-broker.apdcl.co
 mqtt_port: 1883
 mqtt_username: mosquittouser
-mqtt_force_unsecure: true
-gateway_id: AASU105001 
 mqtt_password: zVBYMPX7jNgZiwhFfZflhlArWxH7LP
+mqtt_force_unsecure: true
+gateway_id: AASU105001
