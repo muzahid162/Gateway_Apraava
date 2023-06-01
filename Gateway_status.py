@@ -10,9 +10,9 @@ from threading import Thread
 import netifaces as ni
 import subprocess
 
-#import APN
+# import APN
 
-#from gpiozero import CPUTemperature
+# from gpiozero import CPUTemperature
 
 main_sense_pin = 13
 pulse_pin = 21
@@ -28,7 +28,7 @@ GPIO.setup(enable_telit, GPIO.OUT, initial=GPIO.LOW)
 logging.basicConfig(filename='Gateway_status.log', filemode='a', format='%(asctime)s - %(message)s',
                     datefmt='%d-%b-%y %H:%M:%S', level=logging.ERROR)
 
-#cpu = CPUTemperature()
+# cpu = CPUTemperature()
 
 sleep(10)
 GPIO.output(enable_telit, GPIO.HIGH)
@@ -36,12 +36,12 @@ sleep(5)
 GPIO.output(enable_telit, GPIO.LOW)
 sleep(20)
 
+
 def enable_modem():
     GPIO.output(enable_telit, GPIO.HIGH)
     sleep(5)
     GPIO.output(enable_telit, GPIO.LOW)
     sleep(20)
-
 
 
 def main_sense():
@@ -100,6 +100,7 @@ def port_select():
     else:
         logging.error('Desired Port Not Found')
 
+
 def enable_sim():
     sleep(2)
     command = port_select()
@@ -121,45 +122,82 @@ def enable_sim():
     except Exception as ex:
         logging.error(ex)
 
+
+def network_status():
+    command = port_select()
+    ser = serial.Serial(command[1], baudrate=9600, timeout=5)
+    try:
+        ntwrk_check_cmd = "AT+COPS?\r"
+        ser.write(ntwrk_check_cmd.encode())
+        sleep(1)
+        serCount = ser.inWaiting()
+        response = str(ser.read(serCount))
+        if response[23] == '2':
+            ser.write(bytes("AT+COPS=0\r\n", 'utf-8'))
+            sleep(30)
+        ser.close()
+        sleep(1)
+    except Exception as e:
+        print('error reading network name', e)
+        ser.close()
+        sleep(2)
+
+
 def usb_eth_enable():
     sleep(2)
     command = port_select()
     try:
         ser = serial.Serial(command[1], baudrate=115200, timeout=5)
-        ser.write(bytes("AT#USBCFG=1\r\n", 'utf-8'))
-        sleep(1)
+        ser.write(bytes("AT#USBCFG?\r\n", 'utf-8'))
+        sleep(2)
+        serCount = ser.inWaiting()
+        response = str(ser.read(serCount))
+        if response[27]=='0':
+            ser.write(bytes("AT#USBCFG=1\r\n", 'utf-8'))
+            sleep(40)
         ser.close()
     except Exception as ex:
-        logging.error(ex)
+        print(ex)
+
 
 def dial_rndis():
     sleep(1)
     command = port_select()
     try:
         ser = serial.Serial(command[1], baudrate=115200, timeout=5)
-        ser.write(bytes("AT#RNDIS=1,0\r\n", 'utf-8'))
-        sleep(1)
-        serCount = ser.inWaiting()
-        response = str(ser.read(serCount))
-        ser.close()
-        return response
+        try:
+            ntwrk_check_cmd = "AT#RNDIS?\r"
+            ser.write(ntwrk_check_cmd.encode())
+            sleep(1)
+            serCount = ser.inWaiting()
+            response = str(ser.read(serCount))
+            if response[27] == '0':
+                ser.write(bytes("AT#RNDIS=1,0\r\n", 'utf-8'))
+                sleep(1)
+            ser.close()
+        except Exception as e:
+            print('error reading network name', e)
+            ser.close()
     except Exception as ex:
         logging.error(ex)
+
 
 def dial_internet():
     dial_count = 0
     usb_eth_enable()
-    sleep(40)
     enable_sim()
-    sleep(15)
-    try:
-        rndis_response = dial_rndis()
-        #logging.error(rndis_response)
-    except:
-        dial_count = dial_count + 1
-        if dial_count == 6:
-            logging.error('Not able to dial Internet')
-            dial_count = 0
+    network_status()
+    sleep(10)
+    while True:
+        try:
+            dial_rndis()
+        except:
+            dial_count = dial_count + 1
+            if dial_count == 6:
+                logging.error('Not able to dial Internet')
+                dial_count = 0
+        sleep(60)
+
 
 def check_modem():
     logging.error('Device Powered ON')
@@ -180,7 +218,7 @@ def check_modem():
                 port_count = port_count + 1
         if port_count >= 5:
             modem_count = 0
-            sleep(60)
+            sleep(90)
             internet_count = 0
             for i in range(7):
                 url = ['test-broker.crystalpower.in']
@@ -219,6 +257,7 @@ def check_modem():
                 os.system('sudo -S shutdown -h now')
             sleep(30)
 
+
 t = Thread(target=check_modem)
 t.start()
 t = Thread(target=main_sense)
@@ -227,7 +266,7 @@ t = Thread(target=pulse_gen)
 t.start()
 # t = Thread(target=cpu_temp)
 # t.start()
-#t = Thread(target=enable_sim)
-#t.start()
+# t = Thread(target=enable_sim)
+# t.start()
 t = Thread(target=dial_internet)
 t.start()
