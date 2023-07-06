@@ -1,6 +1,6 @@
 mqtt_hostname: test-broker.crystalpower.in 
-mqtt_port: 1883 
+mqtt_port: 8883 
 mqtt_username: mosquittouser 
 mqtt_password: uzh8qObGsLhhAnlZX6ZUwKHpn 
-mqtt_force_unsecure: True 
+#mqtt_force_unsecure: True 
 gateway_id: AASU105001
